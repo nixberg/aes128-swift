@@ -1,5 +1,6 @@
 import XCTest
 import AES128
+import CipherModes
 
 final class AES128Tests: XCTestCase {
     func testAES128() {

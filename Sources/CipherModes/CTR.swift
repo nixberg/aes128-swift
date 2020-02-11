@@ -1,4 +1,5 @@
 import Foundation
+import AES128
 
 public extension AES128 {
     func encryptCTR<D, M>(_ input: D, nonce: UInt64, to output: inout M) where D: DataProtocol, M: MutableDataProtocol {

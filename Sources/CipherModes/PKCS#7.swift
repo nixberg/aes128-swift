@@ -1,4 +1,5 @@
 import Foundation
+import AES128
 
 public extension DataProtocol {
     func pkcs7Padded(blockSize: Int = AES128.blockSize) -> [UInt8] {

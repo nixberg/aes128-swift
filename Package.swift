@@ -7,15 +7,17 @@ let package = Package(
     products: [
         .library(
             name: "AES128",
-            targets: ["AES128"]),
+            targets: ["AES128", "CipherModes"]),
     ],
-    dependencies: [],
     targets: [
         .target(
             name: "AES128",
-            dependencies: []),
+            swiftSettings: [.unsafeFlags(["-Ounchecked"])]),
+        .target(
+            name: "CipherModes",
+            dependencies: ["AES128"]),
         .testTarget(
             name: "AES128Tests",
-            dependencies: ["AES128"]),
+            dependencies: ["AES128", "CipherModes"]),
     ]
 )

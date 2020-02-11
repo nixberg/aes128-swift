@@ -1,4 +1,5 @@
 import Foundation
+import AES128
 
 public extension AES128 {
     func encryptCBC<D, I, M>(_ input: D, withIV iv: I, to output: inout M) where D: DataProtocol, I: DataProtocol, M: MutableDataProtocol {

@@ -11,7 +11,9 @@ public struct AES128 {
     let decryptionRoundKeys: [SIMD4<UInt32>]
     
     public init<D>(key: D) where D: DataProtocol {
-        precondition(key.count == Self.blockSize)
+        guard key.count == Self.blockSize else {
+            fatalError()
+        }
         
         var expandedEncryptionKey = [UInt32](repeating: 0, count: 44)
         var expandedDecryptionKey = [UInt32](repeating: 0, count: 44)
@@ -63,7 +65,9 @@ public struct AES128 {
     }
     
     public func encrypt<D, M>(block input: D, to output: inout M) where D: DataProtocol, M: MutableDataProtocol {
-        assert(input.count == 16)
+        guard input.count == Self.blockSize else {
+            fatalError()
+        }
         
         var state = SIMD4<UInt32>(bigEndianBytes: input)
         
@@ -88,7 +92,9 @@ public struct AES128 {
     }
     
     public func decrypt<D, M>(block input: D, to output: inout M) where D: DataProtocol, M: MutableDataProtocol {
-        assert(input.count == 16)
+        guard input.count == Self.blockSize else {
+            fatalError()
+        }
         
         var state = SIMD4<UInt32>(bigEndianBytes: input)
         
@@ -115,28 +121,28 @@ public struct AES128 {
 
 fileprivate extension UInt32 {
     init<D>(bigEndianBytes bytes: D) where D: DataProtocol {
-        assert(bytes.count == 4)
+        precondition(bytes.count == 4)
         self = bytes.reduce(0, { $0 &<< 8 | UInt32($1) })
     }
     
     var bigEndianBytes: [UInt8] {
-        (0..<4).reversed().map { UInt8(truncatingIfNeeded: self &>> ($0 &* 8)) }
+        (0..<4).reversed().map { UInt8(truncatingIfNeeded: self &>> ($0 * 8)) }
     }
 }
 
 fileprivate extension SIMD4 where Scalar == UInt32 {
     init<D>(bigEndianBytes bytes: D) where D: DataProtocol {
-        assert(bytes.count == 16)
+        precondition(bytes.count == 16)
         
-        let a = UInt32(bigEndianBytes: bytes.prefix(4))
+        let x = UInt32(bigEndianBytes: bytes.prefix(4))
         var bytes = bytes.dropFirst(4)
-        let b = UInt32(bigEndianBytes: bytes.prefix(4))
+        let y = UInt32(bigEndianBytes: bytes.prefix(4))
         bytes = bytes.dropFirst(4)
-        let c = UInt32(bigEndianBytes: bytes.prefix(4))
+        let z = UInt32(bigEndianBytes: bytes.prefix(4))
         bytes = bytes.dropFirst(4)
-        let d = UInt32(bigEndianBytes: bytes.prefix(4))
+        let w = UInt32(bigEndianBytes: bytes.prefix(4))
         
-        self = SIMD4(a, b, c, d)
+        self = Self(x, y, z, w)
     }
     
     @inline(__always)
