@@ -24,6 +24,20 @@ public struct AES128 {
             key = key.dropFirst(4)
         }
         
+        let powers: [UInt32] = [
+            0x01000000,
+            0x02000000,
+            0x04000000,
+            0x08000000,
+            0x10000000,
+            0x20000000,
+            0x40000000,
+            0x80000000,
+            0x1b000000,
+            0x36000000,
+            0x6c000000
+        ]
+        
         for i in 4..<44 {
             var t = expandedEncryptionKey[i - 1]
             if i % 4 == 0 {
@@ -128,6 +142,18 @@ fileprivate extension UInt32 {
     var bigEndianBytes: [UInt8] {
         (0..<4).reversed().map { UInt8(truncatingIfNeeded: self &>> ($0 * 8)) }
     }
+    
+    @inline(__always)
+    func rotated() -> Self {
+        (self &<< 8) | (self &>> 24)
+    }
+    
+    func substituted() -> Self {
+        UInt32(encryptionSBox[Int(self &>> 24) & 0xff]) &<< 24 |
+        UInt32(encryptionSBox[Int(self &>> 16) & 0xff]) &<< 16 |
+        UInt32(encryptionSBox[Int(self &>>  8) & 0xff]) &<<  8 |
+        UInt32(encryptionSBox[Int(self &>>  0) & 0xff]) &<<  0
+    }
 }
 
 fileprivate extension SIMD4 where Scalar == UInt32 {
@@ -174,34 +200,6 @@ fileprivate extension MutableDataProtocol {
         self.append(contentsOf: state.w.bigEndianBytes)
     }
 }
-
-fileprivate extension UInt32 {
-    @inline(__always)
-    func rotated() -> Self {
-        (self &<< 8) | (self &>> 24)
-    }
-    
-    func substituted() -> Self {
-        UInt32(encryptionSBox[Int(self &>> 24) & 0xff]) &<< 24 |
-        UInt32(encryptionSBox[Int(self &>> 16) & 0xff]) &<< 16 |
-        UInt32(encryptionSBox[Int(self &>>  8) & 0xff]) &<<  8 |
-        UInt32(encryptionSBox[Int(self &>>  0) & 0xff]) &<<  0
-    }
-}
-
-fileprivate let powers: [UInt32] = [
-    0x01000000,
-    0x02000000,
-    0x04000000,
-    0x08000000,
-    0x10000000,
-    0x20000000,
-    0x40000000,
-    0x80000000,
-    0x1b000000,
-    0x36000000,
-    0x6c000000
-]
 
 fileprivate extension Array where Element == UInt32 {
     subscript(indices: SIMD4<UInt32>, shiftedBy n: UInt32) -> SIMD4<UInt32> {
