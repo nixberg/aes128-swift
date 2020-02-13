@@ -2,6 +2,8 @@
 
 import PackageDescription
 
+let crossModuleOptimization = SwiftSetting.unsafeFlags(["-cross-module-optimization"])
+
 let package = Package(
     name: "AES128",
     products: [
@@ -12,10 +14,11 @@ let package = Package(
     targets: [
         .target(
             name: "AES128",
-            swiftSettings: [.unsafeFlags(["-Ounchecked"])]),
+            swiftSettings: [crossModuleOptimization, .unsafeFlags(["-Ounchecked"])]),
         .target(
             name: "CipherModes",
-            dependencies: ["AES128"]),
+            dependencies: ["AES128"],
+            swiftSettings: [crossModuleOptimization]),
         .testTarget(
             name: "AES128Tests",
             dependencies: ["AES128", "CipherModes"]),
