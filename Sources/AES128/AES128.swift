@@ -133,26 +133,28 @@ public struct AES128 {
     }
 }
 
-fileprivate extension UInt32 {
+fileprivate extension FixedWidthInteger where Self: UnsignedInteger {
     init<D>(bigEndianBytes bytes: D) where D: DataProtocol {
-        precondition(bytes.count == 4)
-        self = bytes.reduce(0, { $0 &<< 8 | UInt32($1) })
+        precondition(bytes.count == Self.bitWidth / 8)
+        self = bytes.reduce(0, { $0 &<< 8 | Self($1) })
     }
     
     var bigEndianBytes: [UInt8] {
-        (0..<4).reversed().map { UInt8(truncatingIfNeeded: self &>> ($0 * 8)) }
+        stride(from: 0, to: Self.bitWidth, by: 8).reversed().map { UInt8(truncatingIfNeeded: self &>> $0) }
     }
-    
+}
+
+fileprivate extension UInt32 {
     @inline(__always)
     func rotated() -> Self {
         (self &<< 8) | (self &>> 24)
     }
     
     func substituted() -> Self {
-        UInt32(encryptionSBox[Int(self &>> 24) & 0xff]) &<< 24 |
-        UInt32(encryptionSBox[Int(self &>> 16) & 0xff]) &<< 16 |
-        UInt32(encryptionSBox[Int(self &>>  8) & 0xff]) &<<  8 |
-        UInt32(encryptionSBox[Int(self &>>  0) & 0xff]) &<<  0
+        Self(encryptionSBox[Int(self &>> 24) & 0xff]) &<< 24 |
+        Self(encryptionSBox[Int(self &>> 16) & 0xff]) &<< 16 |
+        Self(encryptionSBox[Int(self &>>  8) & 0xff]) &<<  8 |
+        Self(encryptionSBox[Int(self &>>  0) & 0xff]) &<<  0
     }
 }
 
